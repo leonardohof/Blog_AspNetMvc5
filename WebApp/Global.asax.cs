@@ -1,4 +1,9 @@
-﻿using System;
+﻿using Autofac;
+using Autofac.Integration.Mvc;
+using Data;
+using Data.Repository;
+using Data.Services;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
@@ -16,6 +21,29 @@ namespace WebApp
             FilterConfig.RegisterGlobalFilters(GlobalFilters.Filters);
             RouteConfig.RegisterRoutes(RouteTable.Routes);
             BundleConfig.RegisterBundles(BundleTable.Bundles);
+
+            #region Dependency Inject
+
+            var builder = new ContainerBuilder();
+
+            // Register mvc controllers
+            builder.RegisterControllers(typeof(MvcApplication).Assembly);
+
+            // Register blog context
+            builder.Register<IDbContext>(c => new BlogContext("ConnectionString")).InstancePerLifetimeScope();
+            
+            // Register EFRepository
+            builder.RegisterGeneric(typeof(EfRepository<>)).As(typeof(IRepository<>)).InstancePerLifetimeScope();
+
+            // Register services
+            builder.RegisterType<PostService>().As<IPostService>().InstancePerLifetimeScope();
+
+            var container = builder.Build();
+
+            // Set MVC DI resolver to use our Autofac container
+            DependencyResolver.SetResolver(new AutofacDependencyResolver(container));
+
+            #endregion
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Data.Services;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
@@ -8,9 +9,17 @@ namespace WebApp.Controllers
 {
     public class HomeController : Controller
     {
-        public ActionResult Index()
+        public readonly IPostService _postService;
+
+        public HomeController(IPostService postService)
         {
-            return View();
+            this._postService = postService;
+        }
+
+        public ActionResult Index(int page = 1)
+        {
+            var data = _postService.GetAllPosts(page, 10);
+            return View(data);
         }
 
         public ActionResult About()
